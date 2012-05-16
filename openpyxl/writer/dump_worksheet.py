@@ -51,6 +51,8 @@ from openpyxl.shared.ooxml import (ARC_SHARED_STRINGS, ARC_CONTENT_TYPES,
 
 STYLES = {'datetime' : {'type':Cell.TYPE_NUMERIC,
                         'style':'1'},
+          'date' : {'type':Cell.TYPE_NUMERIC,
+                    'style':'2'},
           'string':{'type':Cell.TYPE_STRING,
                     'style':'0'},
           'numeric':{'type':Cell.TYPE_NUMERIC,
@@ -65,7 +67,11 @@ DESCRIPTORS_CACHE_SIZE = 50
 DESCRIPTORS_CACHE = OrderedDict()
 
 DATETIME_STYLE = Style()
-DATETIME_STYLE.number_format.format_code = NumberFormat.FORMAT_DATE_YYYYMMDD2
+DATETIME_STYLE.number_format.format_code = 'yyyy-mm-dd h:mm'
+
+DATE_STYLE = Style()
+DATE_STYLE.number_format.format_code = 'yyyy-mm-dd'
+
 BOUNDING_BOX_PLACEHOLDER = 'A1:%s%d' % (get_column_letter(MAX_COLUMN), MAX_ROW)
 
 def create_temporary_file(suffix=''):
@@ -254,8 +260,12 @@ class DumpWorksheet(Worksheet):
                 dtype = 'boolean'
             elif isinstance(cell, NUMERIC_TYPES):
                 dtype = 'numeric'
-            elif isinstance(cell, (datetime.datetime, datetime.date)):
+            elif isinstance(cell, datetime.datetime):
                 dtype = 'datetime'
+                cell = self._shared_date.datetime_to_julian(cell)
+                attributes['s'] = STYLES[dtype]['style']
+            elif isinstance(cell, datetime.date):
+                dtype = 'date'
                 cell = self._shared_date.datetime_to_julian(cell)
                 attributes['s'] = STYLES[dtype]['style']
             elif cell and cell[0] == '=':
@@ -295,6 +305,7 @@ class ExcelDumpWriter(ExcelWriter):
         self.workbook = workbook
         self.style_writer = StyleDumpWriter(workbook)
         self.style_writer._style_list.append(DATETIME_STYLE)
+        self.style_writer._style_list.append(DATE_STYLE)
 
     def _write_string_table(self, archive):
 
