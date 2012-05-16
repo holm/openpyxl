@@ -29,6 +29,7 @@
 from openpyxl.shared.xmltools import Element, SubElement
 from openpyxl.shared.xmltools import get_document_content
 from openpyxl import style
+from xml.sax.saxutils import escape
 
 class StyleWriter(object):
 
@@ -213,8 +214,8 @@ class StyleWriter(object):
 
                     if hash(st.alignment.wrap_text) != hash(style.DEFAULTS.alignment.wrap_text):
                         alignments['wrapText'] = '1'
-                    
-                    if st.alignment.text_rotation != 0: 
+
+                    if st.alignment.text_rotation != 0:
                         alignments['textRotation'] = '%s' % st.alignment.text_rotation
 
                 SubElement(node, 'alignment', alignments)
@@ -264,6 +265,6 @@ class StyleWriter(object):
         for number_format in exceptions_list :
             SubElement(num_fmts, 'numFmt',
                 {'numFmtId':'%d' % number_format_table[number_format],
-                'formatCode':'%s' % number_format.format_code})
+                'formatCode':'%s' % number_format.format_code.replace("-", "\-")})
 
         return number_format_table
