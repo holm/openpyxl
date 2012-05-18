@@ -39,18 +39,33 @@ from openpyxl.reader.workbook import read_sheets_titles, read_named_ranges, \
         read_properties_core, get_sheet_ids, read_excel_base_date
 from openpyxl.reader.worksheet import read_worksheet
 from openpyxl.reader.iter_worksheet import unpack_worksheet
+from cStringIO import StringIO
 
 def repair_central_directory(zipFile):
     ''' trims trailing data from the central directory 
     code taken from http://stackoverflow.com/a/7457686/570216, courtesy of Uri Cohen
     '''
-    f = open(zipFile, 'r+b')
-    data = f.read()
-    pos = data.find('\x50\x4b\x05\x06') # End of central directory signature  
-    if (pos > 0):
-        f.seek(pos + 22)   # size of 'ZIP end of central directory record' 
-        f.truncate()
-        f.close()
+    if isinstance(zipFile, basestring):
+        f = open(zipFile, 'r+b')
+        data = f.read()
+        pos = data.find('\x50\x4b\x05\x06') # End of central directory signature  
+        if (pos > 0):
+            f.seek(pos + 22)   # size of 'ZIP end of central directory record' 
+            f.truncate()
+            f.close()
+
+        return zipFile
+    else:
+        #File-like object
+        data = zipFile.read()
+
+        pos = data.find('\x50\x4b\x05\x06') # End of central directory signature  
+        if pos > 0:
+            data = data[:pos + 22]   # size of 'ZIP end of central directory record' 
+
+            return StringIO(data)
+        else:
+            return zipFile
 
 def load_workbook(filename, use_iterators=False):
     """Open the given filename and return the workbook
@@ -80,7 +95,7 @@ def load_workbook(filename, use_iterators=False):
         archive = ZipFile(filename, 'r', ZIP_DEFLATED)
     except BadZipfile:
         try:
-            repair_central_directory(filename)
+            filename = repair_central_directory(filename)
             archive = ZipFile(filename, 'r', ZIP_DEFLATED)
         except BadZipfile, e:
             raise InvalidFileException(unicode(e))
