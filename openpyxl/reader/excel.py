@@ -57,15 +57,14 @@ def repair_central_directory(zipFile):
         return zipFile
     else:
         #File-like object
+        zipFile.seek(0)
         data = zipFile.read()
 
-        pos = data.find('\x50\x4b\x05\x06') # End of central directory signature  
+        pos = data.find('\x50\x4b\x05\x06') # End of central directory signature
         if pos > 0:
             data = data[:pos + 22]   # size of 'ZIP end of central directory record' 
 
-            return StringIO(data)
-        else:
-            return zipFile
+        return StringIO(data)
 
 def load_workbook(filename, use_iterators=False):
     """Open the given filename and return the workbook
