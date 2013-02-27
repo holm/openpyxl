@@ -270,6 +270,7 @@ class ExcelDumpWriter(ExcelWriter):
         self.workbook = workbook
         self.style_writer = StyleDumpWriter(workbook)
         self.style_writer._style_list.append(DATETIME_STYLE)
+        self.style_writer._style_list.append(DATE_STYLE)
 
     def _write_string_table(self, archive):
         shared_string_table = self.workbook.strings_table_builder.get_table()
@@ -277,7 +278,6 @@ class ExcelDumpWriter(ExcelWriter):
                 write_string_table(shared_string_table))
 
         return shared_string_table
-        self.style_writer._style_list.append(DATE_STYLE)
 
     def _write_worksheets(self, archive, shared_string_table, style_writer):
         for i, sheet in enumerate(self.workbook.worksheets):
