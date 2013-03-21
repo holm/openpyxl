@@ -398,5 +398,5 @@ class Cell(object):
         :rtype: bool
         """
         return (self.has_style
-                and self.style.number_format.is_date_format()
+                and self.style.number_format.is_date_format
                 and isinstance(self._value, NUMERIC_TYPES))

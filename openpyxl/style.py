@@ -348,16 +348,14 @@ class NumberFormat(HashableObject):
         """Return the id of a standard style."""
         return self._BUILTIN_FORMATS_REVERSE.get(format, None)
 
-    def is_date_format(self, format = None):
+    @property
+    def is_date_format(self):
         """Check if the number format is actually representing a date."""
-        if format is None:
-            format = self._format_code
+        return self.is_format_date(self._format_code)
 
-        if any([x in format for x in self.DATE_INDICATORS]):
-            if self.BAD_DATE_RE.search(format) is None:
-                return True
-            
-        return False
+    @classmethod
+    def is_format_date(cls, format):
+        return any([x in format for x in cls.DATE_INDICATORS]) and cls.BAD_DATE_RE.search(format) is None
 
 class Protection(HashableObject):
     """Protection options for use in styles."""

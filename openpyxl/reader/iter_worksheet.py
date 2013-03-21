@@ -105,16 +105,12 @@ class RawCell(BaseRawCell):
 
     @property
     def is_date(self):
-        res = (self.data_type == Cell.TYPE_NUMERIC
-               and self.number_format is not None
-               and ('d' in self.number_format
-                    or 'm' in self.number_format
-                    or 'y' in self.number_format
-                    or 'h' in self.number_format
-                    or 's' in self.number_format
-                   ))
+        if self.data_type != Cell.TYPE_NUMERIC:
+            return False
+        if self.number_format is None:
+            return False
 
-        return res
+        return NumberFormat.is_format_date(self.number_format)
 
 def iter_rows(workbook_name, sheet_name, xml_source, shared_date, string_table, range_string='', row_offset=0, column_offset=0):
 
