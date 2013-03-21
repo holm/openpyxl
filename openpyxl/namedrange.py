@@ -29,7 +29,6 @@
 import re
 
 # package imports
-from openpyxl.shared.compat import unicode
 from openpyxl.shared.exc import NamedRangeException
 
 # constants
@@ -43,20 +42,17 @@ class NamedRange(object):
     """
     __slots__ = ('name', 'destinations', 'scope')
 
-    str_format = unicode('%s!%s')
-    repr_format = unicode('<%s "%s">')
-
     def __init__(self, name, destinations):
         self.name = name
         self.destinations = destinations
         self.scope = None
 
     def __str__(self):
-        return  ','.join([self.str_format % (sheet, name) for sheet, name in self.destinations])
+        return  ','.join([u'%s!%s' % (sheet, name) for sheet, name in self.destinations])
 
     def __repr__(self):
 
-        return  self.repr_format % (self.__class__.__name__, str(self))
+        return '<%s "%s">' % (self.__class__.__name__, str(self))
 
 class NamedRangeContainingValue(object):
     """A named value"""
@@ -87,4 +83,5 @@ def split_named_range(range_string):
     return destinations
 
 def refers_to_range(range_string):
+    print range_string, bool(NAMED_RANGE_RE.match(range_string))
     return bool(NAMED_RANGE_RE.match(range_string))

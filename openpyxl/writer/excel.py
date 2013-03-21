@@ -27,13 +27,7 @@
 
 # Python stdlib imports
 from zipfile import ZipFile, ZIP_DEFLATED
-try:
-    # Python 2
-    from StringIO import StringIO
-    BytesIO = StringIO
-except ImportError:
-    # Python 3
-    from io import BytesIO, StringIO
+from StringIO import StringIO
 
 # package imports
 from openpyxl.shared.ooxml import ARC_SHARED_STRINGS, ARC_CONTENT_TYPES, \
@@ -69,10 +63,7 @@ class ExcelWriter(object):
         archive.writestr(ARC_APP, write_properties_app(self.workbook))
         archive.writestr(ARC_CORE,
                 write_properties_core(self.workbook.properties))
-        if self.workbook.loaded_theme:
-            archive.writestr(ARC_THEME, self.workbook.loaded_theme)
-        else:
-            archive.writestr(ARC_THEME, write_theme())
+        archive.writestr(ARC_THEME, write_theme())
         archive.writestr(ARC_STYLE, self.style_writer.write_table())
         archive.writestr(ARC_WORKBOOK, write_workbook(self.workbook))
 
@@ -154,7 +145,7 @@ def save_workbook(workbook, filename):
 def save_virtual_workbook(workbook):
     """Return an in-memory workbook, suitable for a Django response."""
     writer = ExcelWriter(workbook)
-    temp_buffer = BytesIO()
+    temp_buffer = StringIO()
     try:
         archive = ZipFile(temp_buffer, 'w', ZIP_DEFLATED)
         writer.write_data(archive)

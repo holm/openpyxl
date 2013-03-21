@@ -26,27 +26,13 @@
 """Write worksheets to xml representations."""
 
 # Python stdlib imports
-try:
-    # Python 2
-    from StringIO import StringIO  # cStringIO doesn't handle unicode
-    BytesIO = StringIO
-except ImportError:
-    # Python 3
-    from io import BytesIO, StringIO
-
-try:
-    # Python 2
-    isinstance(1, long)
-except NameError:
-    # Python 3, all ints are long
-    long = int
+from StringIO import StringIO  # cStringIO doesn't handle unicode
 
 # package imports
 import decimal
 from openpyxl.cell import coordinate_from_string, column_index_from_string
 from openpyxl.shared.xmltools import Element, SubElement, XMLGenerator, \
         get_document_content, start_tag, end_tag, tag
-from openpyxl.shared.compat.itertools import iteritems, iterkeys
 
 
 def row_sort(cell):
@@ -57,7 +43,7 @@ def row_sort(cell):
 def write_worksheet(worksheet, string_table, style_table):
     """Write a worksheet to an xml file."""
     xml_file = StringIO()
-    doc = XMLGenerator(out=xml_file, encoding='utf-8')
+    doc = XMLGenerator(xml_file, 'utf-8')
     start_tag(doc, 'worksheet',
             {'xml:space': 'preserve',
             'xmlns': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
@@ -79,10 +65,6 @@ def write_worksheet(worksheet, string_table, style_table):
     write_worksheet_mergecells(doc, worksheet)
     write_worksheet_hyperlinks(doc, worksheet)
 
-    options = worksheet.page_setup.options
-    if options:
-        tag(doc, 'printOptions', options)
-
     margins = worksheet.page_margins.margins
     if margins:
         tag(doc, 'pageMargins', margins)
@@ -90,14 +72,6 @@ def write_worksheet(worksheet, string_table, style_table):
     setup = worksheet.page_setup.setup
     if setup:
         tag(doc, 'pageSetup', setup)
-
-    if worksheet.header_footer.hasHeader() or worksheet.header_footer.hasFooter():
-        start_tag(doc, 'headerFooter')
-        if worksheet.header_footer.hasHeader():
-            tag(doc, 'oddHeader', None, worksheet.header_footer.getHeader())
-        if worksheet.header_footer.hasFooter():
-            tag(doc, 'oddFooter', None, worksheet.header_footer.getFooter())
-        end_tag(doc, 'headerFooter')
 
     if worksheet._charts:
         tag(doc, 'drawing', {'r:id':'rId1'})
@@ -146,7 +120,7 @@ def write_worksheet_cols(doc, worksheet):
     if worksheet.column_dimensions:
         start_tag(doc, 'cols')
         for column_string, columndimension in \
-                iteritems(worksheet.column_dimensions):
+                worksheet.column_dimensions.iteritems():
             col_index = column_index_from_string(column_string)
             col_def = {}
             col_def['collapsed'] = str(columndimension.style_index)
@@ -177,17 +151,12 @@ def write_worksheet_data(doc, worksheet, string_table, style_table):
     max_column = worksheet.get_highest_column()
     style_id_by_hash = style_table
     cells_by_row = {}
-    for styleCoord in iterkeys(worksheet._styles):
-        # Ensure a blank cell exists if it has a style
-        worksheet.cell(styleCoord)
     for cell in worksheet.get_cell_collection():
         cells_by_row.setdefault(cell.row, []).append(cell)
     for row_idx in sorted(cells_by_row):
         row_dimension = worksheet.row_dimensions[row_idx]
         attrs = {'r': '%d' % row_idx,
                  'spans': '1:%d' % max_column}
-        if not row_dimension.visible:
-            attrs['hidden'] = '1'
         if row_dimension.height > 0:
             attrs['ht'] = str(row_dimension.height)
             attrs['customHeight'] = '1'
@@ -202,27 +171,25 @@ def write_worksheet_data(doc, worksheet, string_table, style_table):
             if coordinate in worksheet._styles:
                 attributes['s'] = '%d' % style_id_by_hash[
                         hash(worksheet._styles[coordinate])]
-
-            if value in ('', None):
-                tag(doc, 'c', attributes)
-            else:
-                start_tag(doc, 'c', attributes)
-                if cell.data_type == cell.TYPE_STRING:
-                    tag(doc, 'v', body='%s' % string_table[value])
-                elif cell.data_type == cell.TYPE_FORMULA:
-                    tag(doc, 'f', body='%s' % value[1:])
-                    tag(doc, 'v')
-                elif cell.data_type == cell.TYPE_NUMERIC:
-                    if isinstance(value, (long, decimal.Decimal)):
-                        func = str
-                    else:
-                        func = repr
-                    tag(doc, 'v', body=func(value))
-                elif cell.data_type == cell.TYPE_BOOL:
-                    tag(doc, 'v', body='%d' % value)
+            start_tag(doc, 'c', attributes)
+            if value is None:
+                tag(doc, 'v', body='')
+            elif cell.data_type == cell.TYPE_STRING:
+                tag(doc, 'v', body='%s' % string_table[value])
+            elif cell.data_type == cell.TYPE_FORMULA:
+                tag(doc, 'f', body='%s' % value[1:])
+                tag(doc, 'v')
+            elif cell.data_type == cell.TYPE_NUMERIC:
+                if isinstance(value, (long, decimal.Decimal)):
+                    func = str
                 else:
-                    tag(doc, 'v', body='%s' % value)
-                end_tag(doc, 'c')
+                    func = repr
+                tag(doc, 'v', body=func(value))
+            elif cell.data_type == cell.TYPE_BOOL:
+                tag(doc, 'v', body='%d' % value)
+            else:
+                tag(doc, 'v', body='%s' % value)
+            end_tag(doc, 'c')
         end_tag(doc, 'row')
     end_tag(doc, 'sheetData')
 
@@ -230,11 +197,11 @@ def write_worksheet_data(doc, worksheet, string_table, style_table):
 def write_worksheet_mergecells(doc, worksheet):
     """Write merged cells to xml."""
     if len(worksheet._merged_cells) > 0:
-        start_tag(doc, 'mergeCells', {'count': str(len(worksheet._merged_cells))})
+        start_tag(doc,'mergeCells')
         for range_string in worksheet._merged_cells:
             attrs = {'ref': range_string}
-            tag(doc, 'mergeCell', attrs)
-        end_tag(doc, 'mergeCells')
+            tag(doc,'mergeCell',attrs)
+        end_tag(doc,'mergeCells')
 
 
 def write_worksheet_hyperlinks(doc, worksheet):

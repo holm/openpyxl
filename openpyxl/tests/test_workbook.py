@@ -180,13 +180,7 @@ def test_write_regular_float():
 @raises(UnicodeDecodeError)
 def test_bad_encoding():
 
-    try:
-        # Python 2
-        pound = unichr(163)
-    except NameError:
-        # Python 3
-        pound = chr(163)
-    test_string = ('Compound Value (' + pound + ')').encode('latin1')
+    test_string = u'Compound Value (£)'.encode('latin1')
 
     utf_book = Workbook()
     utf_sheet = utf_book.get_active_sheet()
@@ -194,13 +188,7 @@ def test_bad_encoding():
 
 def test_good_encoding():
 
-    try:
-        # Python 2
-        pound = unichr(163)
-    except NameError:
-        # Python 3
-        pound = chr(163)
-    test_string = ('Compound Value (' + pound + ')').encode('latin1')
+    test_string = u'Compound Value (£)'.encode('latin1')
 
     lat_book = Workbook(encoding='latin1')
     lat_sheet = lat_book.get_active_sheet()

@@ -23,15 +23,7 @@
 # @author: see AUTHORS file
 
 from openpyxl.shared.xmltools import Element, SubElement, get_document_content
-from openpyxl.shared.compat.itertools import iteritems
 from openpyxl.chart import Chart, ErrorBar
-
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
 
 class ChartWriter(object):
 
@@ -121,8 +113,8 @@ class ChartWriter(object):
         scaling = SubElement(ax, 'c:scaling')
         SubElement(scaling, 'c:orientation', {'val':axis.orientation})
         if label == 'c:valAx':
-            SubElement(scaling, 'c:max', {'val':str(float(axis.max))})
-            SubElement(scaling, 'c:min', {'val':str(float(axis.min))})
+            SubElement(scaling, 'c:max', {'val':str(axis.max)})
+            SubElement(scaling, 'c:min', {'val':str(axis.min)})
 
         SubElement(ax, 'c:axPos', {'val':axis.position})
         if label == 'c:valAx':
@@ -155,7 +147,7 @@ class ChartWriter(object):
                 SubElement(ax, 'c:crossBetween', {'val':'midCat'})
             else:
                 SubElement(ax, 'c:crossBetween', {'val':'between'})
-            SubElement(ax, 'c:majorUnit', {'val':str(float(axis.unit))})
+            SubElement(ax, 'c:majorUnit', {'val':str(axis.unit)})
 
     def _write_series(self, subchart):
 
@@ -252,7 +244,7 @@ class ChartWriter(object):
             literal=(serie.error_bar.type == ErrorBar.PLUS))
 
     def _write_legend(self, chart):
-
+        
         if self.chart.show_legend:
             legend = SubElement(chart, 'c:legend')
             SubElement(legend, 'c:legendPos', {'val':self.chart.legend.position})
@@ -262,14 +254,7 @@ class ChartWriter(object):
 
         settings = SubElement(root, 'c:printSettings')
         SubElement(settings, 'c:headerFooter')
-        try:
-            # Python 2
-            print_margins_items = iteritems(self.chart.print_margins)
-        except AttributeError:
-            # Python 3
-            print_margins_items = self.chart.print_margins.items()
-
-        margins = dict([(k, str(v)) for (k, v) in print_margins_items])
+        margins = dict([(k, str(v)) for (k, v) in self.chart.print_margins.iteritems()])
         SubElement(settings, 'c:pageMargins', margins)
         SubElement(settings, 'c:pageSetup')
 

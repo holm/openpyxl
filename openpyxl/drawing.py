@@ -358,6 +358,7 @@ class Shape(object):
     def _set_border_width(self, w):
 
         self._border_width = pixels_to_EMU(w)
+        print self._border_width
 
     border_width = property(_get_border_width, _set_border_width)
 

@@ -38,7 +38,7 @@ import datetime
 import re
 
 # package imports
-from openpyxl.shared.compat import all, unicode, basestring
+from openpyxl.shared.compat import all
 from openpyxl.shared.date_time import SharedDate
 from openpyxl.shared.exc import CellCoordinatesException, \
         ColumnStringIndexException, DataTypeException
@@ -145,8 +145,7 @@ class Cell(object):
                  'parent',
                  'xf_index',
                  '_hyperlink_rel',
-                 '_shared_date',
-                 'merged')
+                 '_shared_date')
 
     ERROR_CODES = {'#NULL!': 0,
                    '#DIV/0!': 1,
@@ -186,21 +185,19 @@ class Cell(object):
         self.parent = worksheet
         self.xf_index = 0
         self._shared_date = SharedDate(base_date=worksheet.parent.excel_base_date)
-        self.merged = False
 
     @property
     def encoding(self):
         return self.parent.encoding
 
     def __repr__(self):
-        return unicode("<Cell %s.%s>") % (self.parent.title, self.get_coordinate())
+        return u"<Cell %s.%s>" % (self.parent.title, self.get_coordinate())
 
     def check_string(self, value):
         """Check string coding, length, and line break character"""
         # convert to unicode string
         if not isinstance(value, unicode):
             value = unicode(value, self.encoding)
-        value = unicode(value)
         # string must never be longer than 32,767 characters
         # truncate if necessary
         value = value[:32767]
@@ -248,14 +245,10 @@ class Cell(object):
             data_type = self.TYPE_STRING
         elif isinstance(value, basestring) and value[0] == '=':
             data_type = self.TYPE_FORMULA
-        elif isinstance(value, unicode) and self.RE_PATTERNS['numeric'].match(value):
+        elif self.RE_PATTERNS['numeric'].match(value):
             data_type = self.TYPE_NUMERIC
-        elif not isinstance(value, unicode) and self.RE_PATTERNS['numeric'].match(str(value)):
-            data_type = self.TYPE_NUMERIC
-        elif isinstance(value, basestring) and value.strip() in self.ERROR_CODES:
-          data_type = self.TYPE_ERROR
-        elif isinstance(value, list):
-          data_type = self.TYPE_ERROR
+        elif value.strip() in self.ERROR_CODES:
+            data_type = self.TYPE_ERROR
         else:
             data_type = self.TYPE_STRING
         return data_type
@@ -268,20 +261,14 @@ class Cell(object):
             return True
         elif self._data_type == self.TYPE_STRING:
             # percentage detection
-            if isinstance(value, unicode):
-                percentage_search = self.RE_PATTERNS['percentage'].match(value)
-            else:
-                percentage_search = self.RE_PATTERNS['percentage'].match(str(value))
+            percentage_search = self.RE_PATTERNS['percentage'].match(value)
             if percentage_search and value.strip() != '%':
                 value = float(value.replace('%', '')) / 100.0
                 self.set_value_explicit(value, self.TYPE_NUMERIC)
                 self._set_number_format(NumberFormat.FORMAT_PERCENTAGE)
                 return True
             # time detection
-            if isinstance(value, unicode):
-                time_search = self.RE_PATTERNS['time'].match(value)
-            else:
-                time_search = self.RE_PATTERNS['time'].match(str(value))
+            time_search = self.RE_PATTERNS['time'].match(value)
             if time_search:
                 sep_count = value.count(':') #pylint: disable=E1103
                 if sep_count == 1:

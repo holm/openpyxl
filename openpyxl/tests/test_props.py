@@ -59,13 +59,7 @@ class TestReaderProps(object):
         content = self.archive.read(ARC_CORE)
         prop = read_properties_core(content)
         eq_(prop.creator, '*.*')
-        try:
-            # Python 2
-            eacute = unichr(233)
-        except NameError:
-            # Python 3
-            eacute = chr(233)
-        eq_(prop.last_modified_by, 'Aur' + eacute + 'lien Camp' + eacute + 'as')
+        eq_(prop.last_modified_by, u'Aurélien Campéas')
         eq_(prop.created, datetime(2010, 4, 9, 20, 43, 12))
         eq_(prop.modified, datetime(2011, 2, 9, 13, 49, 32))
 

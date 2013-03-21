@@ -28,7 +28,6 @@
 # package imports
 from openpyxl.shared.xmltools import fromstring, QName
 from openpyxl.shared.ooxml import NAMESPACES
-from openpyxl.shared.compat import unicode
 
 
 def read_string_table(xml_source):
@@ -57,7 +56,7 @@ def get_string(xmlns, string_index_node):
         for rich_node in rich_nodes:
             partial_text = get_text(xmlns, rich_node)
             reconstructed_text.append(partial_text)
-        return unicode(''.join(reconstructed_text))
+        return u''.join(reconstructed_text)
     else:
         return get_text(xmlns, string_index_node)
 
@@ -65,7 +64,7 @@ def get_string(xmlns, string_index_node):
 def get_text(xmlns, rich_node):
     """Read rich text, discarding formatting if not disallowed"""
     text_node = rich_node.find(QName(xmlns, 't').text)
-    partial_text = text_node.text or unicode('')
+    partial_text = text_node.text or u''
 
     if text_node.get(QName(NAMESPACES['xml'], 'space').text) != 'preserve':
         partial_text = partial_text.strip()
