@@ -232,7 +232,10 @@ def get_squared_range(p, min_col, min_row, max_col, max_row, string_table, style
                     elif cell.data_type == Cell.TYPE_BOOL:
                         cell = cell._replace(internal_value=cell.internal_value == '1')
                     elif cell.is_date:
-                        cell = cell._replace(internal_value=shared_date.from_julian(float(cell.internal_value)))
+                        try:
+                            cell = cell._replace(internal_value=shared_date.from_julian(float(cell.internal_value)))
+                        except OverflowError:
+                            cell = cell._replace(internal_value=None, data_type=TYPE_NULL)
                     elif cell.data_type == Cell.TYPE_NUMERIC:
                         cell = cell._replace(internal_value=float(cell.internal_value))
                     elif cell.data_type in(Cell.TYPE_INLINE, Cell.TYPE_FORMULA_CACHE_STRING):
