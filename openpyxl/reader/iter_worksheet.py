@@ -234,7 +234,7 @@ def get_squared_range(p, min_col, min_row, max_col, max_row, string_table, style
                     elif cell.is_date:
                         try:
                             cell = cell._replace(internal_value=shared_date.from_julian(float(cell.internal_value)))
-                        except OverflowError:
+                        except (OverflowError, ValueError):
                             cell = cell._replace(internal_value=None, data_type=TYPE_NULL)
                     elif cell.data_type == Cell.TYPE_NUMERIC:
                         cell = cell._replace(internal_value=float(cell.internal_value))
